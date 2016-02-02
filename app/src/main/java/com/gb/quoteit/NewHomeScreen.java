@@ -22,17 +22,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.etiennelawlor.imagegallery.library.activities.ImageGalleryActivity;
 import com.etiennelawlor.imagegallery.library.enums.PaletteColorType;
 import com.getbase.floatingactionbutton.FloatingActionButton;
+import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
+import com.like.LikeButton;
+import com.like.OnLikeListener;
 import com.notification.quoteit.Alramsetting;
 import com.squareup.picasso.Picasso;
 
@@ -48,6 +53,8 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
     FloatingActionButton actionC_invite;
     FloatingActionButton action_gallery;
     FloatingActionButton action_setting;
+    LikeButton likeButton;
+
 
     private InterstitialAd mInterstitialAd;
 
@@ -66,13 +73,14 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
 
         mSwipeStack = (SwipeStack) findViewById(R.id.swipeStack);
 
-
         mData = new ArrayList<>();
         mAdapter = new SwipeStackAdapter(mData);
         mSwipeStack.setAdapter(mAdapter);
         mSwipeStack.setListener(this);
 
+
         fillWithTestData();
+
 
         bindFabButton();
         loadAdBanner();
@@ -82,17 +90,21 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
     }
 
     private void fillWithTestData() {
-        for (int x = 0; x < 3; x++) {
+        for (int x = 0; x < 4; x++) {
             mData.add(" Texst" + (x + 1));
         }
+
+
     }
-
-
 
 
     @Override
     public void onViewSwipedToRight(int position) {
         String swipedElement = mAdapter.getItem(position);
+        if (likeButton.isEnabled())
+            likeButton.setLiked(true);
+        else likeButton.setLiked(false);
+
 
     }
 
@@ -104,8 +116,9 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
 
     @Override
     public void onStackEmpty() {
-        Toast.makeText(this, "Empty", Toast.LENGTH_SHORT).show();
+      //  Toast.makeText(this, "Back to Present", Toast.LENGTH_SHORT).show();
         mSwipeStack.resetStack();
+
     }
 
     public class SwipeStackAdapter extends BaseAdapter {
@@ -133,31 +146,47 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
 
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
+
+            ImageViewHolder holder = null;
             if (convertView == null) {
                 convertView = getLayoutInflater().inflate(R.layout.card, parent, false);
+                holder = new ImageViewHolder(convertView);
+                convertView.setTag(holder);
+            } else {
+
+                holder = (ImageViewHolder) convertView.getTag();
+
             }
 
 
-            ImageView landing_image = (ImageView) convertView.findViewById(R.id.landing_image);
-            setUpImage(landing_image, imgurl[position]);
 
-
+            if (position == 3) {
+                holder.mImageView.setImageResource(R.drawable.demoimg);
+            } else {
+                String image = imgurl[position];
+                setUpImage(holder.mImageView, image);
+            }
             return convertView;
         }
     }
 
 
     private void setUpImage(ImageView iv, String imageUrl) {
+
+
         if (!TextUtils.isEmpty(imageUrl)) {
             Picasso.with(iv.getContext())
                     .load(imageUrl)
                     .resize(550, 800)
                     .centerCrop()
                     .into(iv);
+
         } else {
-            iv.setImageDrawable(null);
+            iv.setImageResource(R.drawable.demoimg);
         }
+
     }
+
 
     public void loadAdBanner() {
         AdView adView = (AdView) findViewById(R.id.adView);
@@ -169,11 +198,28 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
 
 
     public void bindFabButton() {
+
+        likeButton = (LikeButton) findViewById(R.id.like_button);
+        FloatingActionsMenu floatingActionsMenu=(FloatingActionsMenu)findViewById(R.id.multiple_actions);
         action_share = (FloatingActionButton) findViewById(R.id.action_share);
         actionC_invite = (FloatingActionButton) findViewById(R.id.action_invitefriend);
         action_gallery = (FloatingActionButton) findViewById(R.id.action_gallery);
         action_setting = (FloatingActionButton) findViewById(R.id.action_setting);
 
+
+
+        likeButton.setOnLikeListener(new OnLikeListener() {
+            @Override
+            public void liked(LikeButton likeButton) {
+                //   Toast.makeText(NewHomeScreen.this, "Cool", Toast.LENGTH_SHORT).show();
+
+            }
+
+            @Override
+            public void unLiked(LikeButton likeButton) {
+                //   Toast.makeText(NewHomeScreen.this, "Kyu", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         action_share.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -286,24 +332,12 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
         String imgurl[] = {"http://cdn-media-1.lifehack.org/wp-content/files/2013/08/square-quote-4-export.png", "https://s-media-cache-ak0.pinimg.com/236x/bc/e0/77/bce0775f23fcb522932571d4d86d8807.jpg",
                 "http://smashinghub.com/wp-content/uploads/2013/05/famous-quotes-17.jpg"};
 
-        for (int i=0;i<imgurl.length;i++)
-        {
+        for (int i = 0; i < imgurl.length; i++) {
             images.add(imgurl[i]);
         }
 
-//        images.add("https://images.unsplash.com/photo-1437422061949-f6efbde0a471?q=80&fm=jpg&s=e23055c9ba7686b8fe583fb8318a1f88");
-//        images.add("https://images.unsplash.com/photo-1434139240289-56c519f77cb0?q=80&fm=jpg&s=13f8a0d1c2f96b5f311dedeb17cddb60");
-//        images.add("https://images.unsplash.com/photo-1429152937938-07b5f2828cdd?q=80&fm=jpg&s=a4f424db0ae5a398297df5ae5e0520d6");
-//        images.add("https://images.unsplash.com/photo-1430866880825-336a7d7814eb?q=80&fm=jpg&s=450de8563ac041f48b1563b499f56895");
-//        images.add("https://images.unsplash.com/photo-1429547584745-d8bec594c82e?q=80&fm=jpg&s=e9a7d9973088122a3e453cb2af541201");
-//        images.add("https://images.unsplash.com/photo-1429277158984-614d155e0017?q=80&fm=jpg&s=138f154e17a304b296c953323862633b");
-//        images.add("https://images.unsplash.com/photo-1429042007245-890c9e2603af?q=80&fm=jpg&s=8b76d20174cf46bffe32ea18f05551d3");
-////        images.add("https://images.unsplash.com/photo-1429091967365-492aaa5accfe?q=80&fm=jpg&s=b7430cfe5508430aea39fcf3b0645878");
-//        images.add("https://images.unsplash.com/photo-1430132594682-16e1185b17c5?q=80&fm=jpg&s=a70abbfff85382d11b03b9bbc71649c3");
-//        images.add("https://images.unsplash.com/photo-1436891620584-47fd0e565afb?q=80&fm=jpg&s=33cf5b0ee9fbd292475a0c03bee481c9");
-
         intent.putStringArrayListExtra("images", images);
-// optionally set background color using Palette
+        // optionally set background color using Palette
         intent.putExtra("palette_color_type", PaletteColorType.VIBRANT);
 
         startActivity(intent);
@@ -314,4 +348,17 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
         showInterstitial();
         return;
     }
+
+
+    public static class ImageViewHolder {
+        private final ImageView mImageView;
+        private final TextView mtextView;
+
+        public ImageViewHolder(final View view) {
+            mImageView = (ImageView) view.findViewById(R.id.landing_image);
+            mtextView = (TextView) view.findViewById(R.id.textViewCard);
+        }
+    }
+
+
 }
