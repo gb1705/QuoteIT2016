@@ -22,14 +22,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.etiennelawlor.imagegallery.library.activities.ImageGalleryActivity;
-import com.etiennelawlor.imagegallery.library.enums.PaletteColorType;
+import com.gb.gallery.activities.ImageGalleryActivity;
+import com.gb.gallery.enums.PaletteColorType;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.google.android.gms.ads.AdListener;
@@ -66,6 +65,8 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
     String imgurl[] = {"http://cdn-media-1.lifehack.org/wp-content/files/2013/08/square-quote-4-export.png", "https://s-media-cache-ak0.pinimg.com/236x/bc/e0/77/bce0775f23fcb522932571d4d86d8807.jpg",
             "http://smashinghub.com/wp-content/uploads/2013/05/famous-quotes-17.jpg"};
 
+    String dateString[]={"1st Jan 2016","2nd Jan 2016","3rd Jan 2016","4th Jan 2016"};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,11 +88,27 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
         mInterstitialAd = newInterstitialAd();
         loadInterstitial();
 
+        mSwipeStack.resetStack();
+
+        QuoteData quoteData =new QuoteData("http://cdn-media-1.lifehack.org/wp-content/files/2013/08/square-quote-4-export.png","1st Jan 2016","1","","");
+        quoteData.save();
+
+        QuoteData quoteData1 =new QuoteData("https://s-media-cache-ak0.pinimg.com/236x/bc/e0/77/bce0775f23fcb522932571d4d86d8807.jpg","2nd Jan 2016","0","","");
+        quoteData1.save();
+
+
+        QuoteData quoteData2 =new QuoteData("http://smashinghub.com/wp-content/uploads/2013/05/famous-quotes-17.jpg","3rd Jan 2016","1","","");
+        quoteData2.save();
+
+        QuoteData quoteData3 =new QuoteData("https://s-media-cache-ak0.pinimg.com/236x/bc/e0/77/bce0775f23fcb522932571d4d86d8807.jpg","4th Jan 2016","0","","");
+        quoteData3.save();
+
+
     }
 
     private void fillWithTestData() {
-        for (int x = 0; x < 4; x++) {
-            mData.add(" Texst" + (x + 1));
+        for (int x = 0; x < dateString.length; x++) {
+            mData.add(dateString[x]);
         }
 
 
@@ -101,9 +118,11 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
     @Override
     public void onViewSwipedToRight(int position) {
         String swipedElement = mAdapter.getItem(position);
-        if (likeButton.isEnabled())
+
+        if (position==2)
             likeButton.setLiked(true);
-        else likeButton.setLiked(false);
+        else if (likeButton.isEnabled())
+            likeButton.setLiked(false);
 
 
     }
@@ -111,6 +130,8 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
     @Override
     public void onViewSwipedToLeft(int position) {
         String swipedElement = mAdapter.getItem(position);
+
+
 
     }
 
@@ -162,9 +183,12 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
 
             if (position == 3) {
                 holder.mImageView.setImageResource(R.drawable.demoimg);
+                holder.mtextView.setText(dateString[position]);
             } else {
                 String image = imgurl[position];
                 setUpImage(holder.mImageView, image);
+                holder.mtextView.setText(dateString[position]);
+
             }
             return convertView;
         }
@@ -211,13 +235,15 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
         likeButton.setOnLikeListener(new OnLikeListener() {
             @Override
             public void liked(LikeButton likeButton) {
-                //   Toast.makeText(NewHomeScreen.this, "Cool", Toast.LENGTH_SHORT).show();
+
+
+
 
             }
 
             @Override
             public void unLiked(LikeButton likeButton) {
-                //   Toast.makeText(NewHomeScreen.this, "Kyu", Toast.LENGTH_SHORT).show();
+
             }
         });
 

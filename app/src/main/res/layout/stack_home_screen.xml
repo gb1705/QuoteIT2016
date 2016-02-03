@@ -4,7 +4,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:fab="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:background="@android:color/white"
     android:layout_height="match_parent"
     android:clipChildren="false">
 
@@ -13,8 +12,8 @@
         android:id="@+id/swipeStack"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="44dp"
         android:layout_above="@+id/like_button"
+        android:padding="44dp"
         app:stack_rotation="10"
         app:stack_size="4" />
 

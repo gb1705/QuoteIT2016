@@ -7,8 +7,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Toast;
 
-import com.etiennelawlor.imagegallery.library.activities.ImageGalleryActivity;
-import com.etiennelawlor.imagegallery.library.enums.PaletteColorType;
+import com.gb.gallery.activities.ImageGalleryActivity;
+import com.gb.gallery.enums.PaletteColorType;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
