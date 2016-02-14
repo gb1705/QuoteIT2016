@@ -16,7 +16,9 @@
 
 package com.gb.quoteit;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -24,6 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,68 +51,79 @@ import link.fls.SwipeStack;
 public class NewHomeScreen extends AppCompatActivity implements SwipeStack.SwipeStackListener {
 
 
-    FloatingActionButton action_share;
-    FloatingActionButton actionC_invite;
-    FloatingActionButton action_gallery;
-    FloatingActionButton action_setting;
-    LikeButton likeButton;
+    private FloatingActionButton action_share;
+    private FloatingActionButton actionC_invite;
+    private FloatingActionButton action_gallery;
+    private FloatingActionButton action_setting;
+    private LikeButton likeButton;
 
 
     private InterstitialAd mInterstitialAd;
-
-
     private ArrayList<String> mData;
     private SwipeStack mSwipeStack;
     private SwipeStackAdapter mAdapter;
 
-    String imgurl[] = {"http://cdn-media-1.lifehack.org/wp-content/files/2013/08/square-quote-4-export.png", "https://s-media-cache-ak0.pinimg.com/236x/bc/e0/77/bce0775f23fcb522932571d4d86d8807.jpg",
-            "http://smashinghub.com/wp-content/uploads/2013/05/famous-quotes-17.jpg"};
+    private DBHandler dbHandler;
+
+    String imgurl[] = {"http://cdn-media-1.lifehack.org/wp-content/files/2013/08/square-quote-4-export.png", "https://s-media-cache-ak0.pinimg.com/236x/bc/e0/77/bce0775f23fcb522932571d4d86d8807.jpg", "http://smashinghub.com/wp-content/uploads/2013/05/famous-quotes-17.jpg"};
 
     String dateString[]={"1st Jan 2016","2nd Jan 2016","3rd Jan 2016","4th Jan 2016"};
+
+    String FAV[]={"0","0","0","0"};
+    RelativeLayout mainbg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.stack_home_screen);
+         mainbg= (RelativeLayout) findViewById(R.id.mainbg);
+        final int sdk = android.os.Build.VERSION.SDK_INT;
 
+
+
+
+
+        dbHandler = new DBHandler(this);
         mSwipeStack = (SwipeStack) findViewById(R.id.swipeStack);
 
+
         mData = new ArrayList<>();
+        bindFabButton();
+        loadAdBanner();
+      //  fillWithTestData();
         mAdapter = new SwipeStackAdapter(mData);
         mSwipeStack.setAdapter(mAdapter);
         mSwipeStack.setListener(this);
 
 
+         // insertdat();
         fillWithTestData();
 
 
-        bindFabButton();
-        loadAdBanner();
         mInterstitialAd = newInterstitialAd();
         loadInterstitial();
-
-        mSwipeStack.resetStack();
-
-        QuoteData quoteData =new QuoteData("http://cdn-media-1.lifehack.org/wp-content/files/2013/08/square-quote-4-export.png","1st Jan 2016","1","","");
-        quoteData.save();
-
-        QuoteData quoteData1 =new QuoteData("https://s-media-cache-ak0.pinimg.com/236x/bc/e0/77/bce0775f23fcb522932571d4d86d8807.jpg","2nd Jan 2016","0","","");
-        quoteData1.save();
-
-
-        QuoteData quoteData2 =new QuoteData("http://smashinghub.com/wp-content/uploads/2013/05/famous-quotes-17.jpg","3rd Jan 2016","1","","");
-        quoteData2.save();
-
-        QuoteData quoteData3 =new QuoteData("https://s-media-cache-ak0.pinimg.com/236x/bc/e0/77/bce0775f23fcb522932571d4d86d8807.jpg","4th Jan 2016","0","","");
-        quoteData3.save();
 
 
     }
 
     private void fillWithTestData() {
-        for (int x = 0; x < dateString.length; x++) {
-            mData.add(dateString[x]);
+
+        String[][] imageData = dbHandler.genericSelect("*", DBHandler.TABLE_NAME, "", "", "", 5);
+
+        imgurl = new String[imageData.length];
+        FAV = new String[imageData.length];
+        dateString = new String[imageData.length];
+
+
+        for (int x = 0; x < imageData.length; x++) {
+            mData.add(imageData[x][2]);
+            imgurl[x] = imageData[x][1];
+            FAV[x] = imageData[x][3];
+            dateString[x] = imageData[x][2];
+
         }
+        if (FAV[0].equals("1"))
+            likeButton.setLiked(true);
 
 
     }
@@ -117,9 +131,15 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
 
     @Override
     public void onViewSwipedToRight(int position) {
-        String swipedElement = mAdapter.getItem(position);
+        //String swipedElement = mAdapter.getItem(position);
 
-        if (position==2)
+
+        if (position == (FAV.length - 1)) {
+            position = 0;
+        } else
+            position = position + 1;
+
+        if (FAV[position].equals("1"))
             likeButton.setLiked(true);
         else if (likeButton.isEnabled())
             likeButton.setLiked(false);
@@ -129,15 +149,23 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
 
     @Override
     public void onViewSwipedToLeft(int position) {
-        String swipedElement = mAdapter.getItem(position);
+        // String swipedElement = mAdapter.getItem(position);
 
+        if (position == (FAV.length - 1)) {
+            position = 0;
+        } else
+            position = position + 1;
+
+        if (FAV[position].equals("1"))
+            likeButton.setLiked(true);
+        else if (likeButton.isEnabled())
+            likeButton.setLiked(false);
 
 
     }
 
     @Override
     public void onStackEmpty() {
-      //  Toast.makeText(this, "Back to Present", Toast.LENGTH_SHORT).show();
         mSwipeStack.resetStack();
 
     }
@@ -168,7 +196,7 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
 
-            ImageViewHolder holder = null;
+            ImageViewHolder holder;
             if (convertView == null) {
                 convertView = getLayoutInflater().inflate(R.layout.card, parent, false);
                 holder = new ImageViewHolder(convertView);
@@ -179,14 +207,14 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
 
             }
 
-
+            ImageView  mImageView = (ImageView) convertView.findViewById(R.id.landing_image);
 
             if (position == 3) {
-                holder.mImageView.setImageResource(R.drawable.demoimg);
+                mImageView.setImageResource(R.drawable.demoimg);
                 holder.mtextView.setText(dateString[position]);
             } else {
                 String image = imgurl[position];
-                setUpImage(holder.mImageView, image);
+                setUpImage(mImageView, image);
                 holder.mtextView.setText(dateString[position]);
 
             }
@@ -201,7 +229,7 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
         if (!TextUtils.isEmpty(imageUrl)) {
             Picasso.with(iv.getContext())
                     .load(imageUrl)
-                    .resize(550, 800)
+                    .resize(550, 900)
                     .centerCrop()
                     .into(iv);
 
@@ -220,30 +248,56 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
 
     }
 
-
     public void bindFabButton() {
 
         likeButton = (LikeButton) findViewById(R.id.like_button);
-        FloatingActionsMenu floatingActionsMenu=(FloatingActionsMenu)findViewById(R.id.multiple_actions);
+        FloatingActionsMenu floatingActionsMenu = (FloatingActionsMenu) findViewById(R.id.multiple_actions);
         action_share = (FloatingActionButton) findViewById(R.id.action_share);
         actionC_invite = (FloatingActionButton) findViewById(R.id.action_invitefriend);
         action_gallery = (FloatingActionButton) findViewById(R.id.action_gallery);
         action_setting = (FloatingActionButton) findViewById(R.id.action_setting);
 
 
-
         likeButton.setOnLikeListener(new OnLikeListener() {
             @Override
             public void liked(LikeButton likeButton) {
+                int pos = mSwipeStack.getCurrentPosition();
+                dbHandler.genericUpdate(DBHandler.TABLE_NAME, "FAV", "1", "IMAGE", imgurl[pos]);
+
+                String[][] imageData = dbHandler.genericSelect("*", DBHandler.TABLE_NAME, "", "", "", 5);
+
+                imgurl = new String[imageData.length];
+                FAV = new String[imageData.length];
+                dateString = new String[imageData.length];
 
 
+                for (int x = 0; x < imageData.length; x++) {
 
+                    imgurl[x] = imageData[x][1];
+                    FAV[x] = imageData[x][3];
+                    dateString[x] = imageData[x][2];
 
+                }
             }
 
             @Override
             public void unLiked(LikeButton likeButton) {
+                int pos = mSwipeStack.getCurrentPosition();
+                dbHandler.genericUpdate(DBHandler.TABLE_NAME, "FAV", "0", "IMAGE", imgurl[pos]);
+                String[][] imageData = dbHandler.genericSelect("*", DBHandler.TABLE_NAME, "", "", "", 5);
 
+                imgurl = new String[imageData.length];
+                FAV = new String[imageData.length];
+                dateString = new String[imageData.length];
+
+
+                for (int x = 0; x < imageData.length; x++) {
+
+                    imgurl[x] = imageData[x][1];
+                    FAV[x] = imageData[x][3];
+                    dateString[x] = imageData[x][2];
+
+                }
             }
         });
 
@@ -347,6 +401,8 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
         AdRequest adRequest = new AdRequest.Builder()
                 .setRequestAgent("android_studio:ad_template").build();
         mInterstitialAd.loadAd(adRequest);
+
+        mSwipeStack.resetStack();
     }
 
 
@@ -355,24 +411,25 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
 
         ArrayList<String> images = new ArrayList<>();
 
-        String imgurl[] = {"http://cdn-media-1.lifehack.org/wp-content/files/2013/08/square-quote-4-export.png", "https://s-media-cache-ak0.pinimg.com/236x/bc/e0/77/bce0775f23fcb522932571d4d86d8807.jpg",
-                "http://smashinghub.com/wp-content/uploads/2013/05/famous-quotes-17.jpg"};
+        String[][] favimageurl = dbHandler.genericSelect("*", dbHandler.TABLE_NAME, "FAV = '1'", "", "", 3);
 
-        for (int i = 0; i < imgurl.length; i++) {
-            images.add(imgurl[i]);
+        if (favimageurl != null) {
+            for (int i = 0; i < favimageurl.length; i++) {
+                images.add(favimageurl[i][1]);
+            }
+            intent.putStringArrayListExtra("images", images);
+            // optionally set background color using Palette
+            intent.putExtra("palette_color_type", PaletteColorType.VIBRANT);
+            startActivity(intent);
+        } else {
+            Toast.makeText(this, "You haven't mark the Favourite", Toast.LENGTH_SHORT).show();
         }
 
-        intent.putStringArrayListExtra("images", images);
-        // optionally set background color using Palette
-        intent.putExtra("palette_color_type", PaletteColorType.VIBRANT);
-
-        startActivity(intent);
     }
 
     @Override
     public void onBackPressed() {
         showInterstitial();
-        return;
     }
 
 
@@ -384,6 +441,25 @@ public class NewHomeScreen extends AppCompatActivity implements SwipeStack.Swipe
             mImageView = (ImageView) view.findViewById(R.id.landing_image);
             mtextView = (TextView) view.findViewById(R.id.textViewCard);
         }
+    }
+
+    void insertdat() {
+
+        ContentValues values = new ContentValues();
+        SQLiteDatabase db = dbHandler.getWritableDatabase();
+
+        for (int i = 0; i < imgurl.length; i++) {
+            values.put("IMAGE", imgurl[i]);
+            values.put("DATE", dateString[i]);
+            values.put("FAV", FAV[i]);
+            values.put("COL4", "");
+            values.put("COL5", "");
+            db.insert(DBHandler.TABLE_NAME, null, values);
+
+
+        }
+
+
     }
 
 
